@@ -10,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 name = 'lowflows'
 main_package = 'lowflows'
 # datasets = 'datasets'
-version = '0.0.5'
+version = '0.0.8'
 descrip = 'Functions to query ECan lowflows'
 
 # The below code is for readthedocs. To have sphinx/readthedocs interact with

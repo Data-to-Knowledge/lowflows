@@ -7,7 +7,7 @@ Created on Fri Mar 16 13:39:50 2018
 import numpy as np
 import pandas as pd
 from lowflows import read_data as rd
-
+#import read_data as rd
 
 ###########################################
 ### Special functions
@@ -237,7 +237,7 @@ def allocation_ts(from_date, to_date=None, ExtSiteID=None, BandNumber=None, Reco
     restr_ts = rd.rd_lf_restr_ts(SiteID, BandNumber=BandNumber, from_date=from_date, to_date=to_date).drop('Measurement', axis=1).reset_index()
 
     ## Combine tables
-    restr_crc1 = pd.merge(crc1, restr_ts, on=['SiteID', 'BandNumber'])
+    restr_crc1 = pd.merge(crc1, restr_ts, on=['SiteID', 'BandNumber']).drop_duplicates(['SiteID', 'BandNumber', 'RecordNumber', 'RestrDate'], keep='last')
     restr_crc2 = pd.merge(sites1, restr_crc1, on='SiteID').drop('SiteID', axis=1)
 
     ## Return

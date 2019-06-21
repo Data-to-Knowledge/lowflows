@@ -38,8 +38,8 @@ site_type_names = ['SiteID', 'BandNumber', 'BandName', 'SiteType', 'IsActive']
 # daily restrictions
 restr_table = 'LowFlowSiteRestrictionDaily'
 
-restr_fields = ['SiteID', 'BandNo', 'RestrictionDate', 'AsmtFlow', 'AsmtOP', 'BandAllocation']
-restr_names = ['SiteID', 'BandNumber', 'RestrDate', 'Measurement', 'OPFlag', 'Allocation']
+restr_fields = ['SiteID', 'BandNo', 'RestrictionDate', 'AsmtFlow', 'AsmtOP', 'BandAllocation', 'SnapshotType']
+restr_names = ['SiteID', 'BandNumber', 'RestrDate', 'Measurement', 'OPFlag', 'Allocation', 'SnapshotType']
 
 # Sites info
 lf_sites_table = 'LowFlowSite'
@@ -189,16 +189,18 @@ def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None):
     """
     LowFlowSiteRestrictionDaily table.
     """
-    where_in1 = util.where_gen(SiteID, 'SiteID')
-    where_in = util.where_gen(BandNumber, 'BandNo', where_in1)
+#    where_in1 = util.where_gen('Live', 'SnapshotType')
+    where_in2 = util.where_gen(SiteID, 'SiteID')
+    where_in = util.where_gen(BandNumber, 'BandNo', where_in2)
 
-    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate')
+    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate').sort_values('SnapshotType')
 
     ## clean
+    restr_ts.drop_duplicates(['SiteID', 'BandNumber', 'RestrDate'], inplace=True)
     restr_ts['OPFlag'] = restr_ts['OPFlag'].str.strip().str.upper()
 
     ## Return
-    return restr_ts.set_index(['SiteID', 'BandNumber', 'RestrDate']).sort_index()
+    return restr_ts.drop('SnapshotType', axis=1).set_index(['SiteID', 'BandNumber', 'RestrDate']).sort_index()
 
 
 def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None):
