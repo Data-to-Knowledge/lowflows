@@ -195,7 +195,7 @@ def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None):
     method1 = rd.rd_lf_last_readings_ts(from_date, to_date, SiteID)
 
     ### Combine tables
-    method2 = pd.concat([method1, site_log1.drop('LogResult', axis=1)], axis=1).reset_index()
+    method2 = pd.concat([method1, site_log1.drop('LogResult', axis=1)], axis=1, join='inner').reset_index()
     site_ts = pd.merge(sites, method2, on='SiteID').drop('SiteID', axis=1)
 
     ### Return
