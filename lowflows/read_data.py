@@ -223,6 +223,9 @@ def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None):
     """
     LowFlowSiteRefDBaseReadSite table.
     """
+    if to_date is None:
+        to_date = str(date.today())
+
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(LogResult, 'Result', where_in1)
 
@@ -263,6 +266,8 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
         df1['RestrDate'] = d
         list1.append(df1)
     df2 = pd.concat(list1)
+    if df2.empty:
+        return None
     dates2 = df2.AppliesFromDate.astype(str).unique().tolist()
 
     where_in1 = util.where_gen(SiteID, 'SiteID')
