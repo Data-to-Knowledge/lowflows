@@ -10,13 +10,13 @@ here = os.path.abspath(os.path.dirname(__file__))
 name = 'lowflows'
 main_package = 'lowflows'
 # datasets = 'datasets'
-version = '0.0.1'
+version = '0.0.4'
 descrip = 'Functions to query ECan lowflows'
 
 # The below code is for readthedocs. To have sphinx/readthedocs interact with
 # the contained package, readthedocs needs to build the package. But the dependencies
 # should be installed via the conda yml env file rather than during the package build.
-INSTALL_REQUIRES = []
+INSTALL_REQUIRES = ['pandas', 'pdsql']
 
 # Get the long description from the README file
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
