@@ -196,7 +196,7 @@ def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None):
 
     ### Combine tables
     method2 = pd.concat([method1, site_log1.drop('LogResult', axis=1)], axis=1, join='inner').reset_index()
-    site_ts = pd.merge(sites, method2, on='SiteID').drop('SiteID', axis=1).drop_duplicates(['ExtSiteID', 'RestrDate'])
+    site_ts = pd.merge(sites, method2, on='SiteID').drop('SiteID', axis=1)
 
     ### Return
     return site_ts.set_index(['ExtSiteID', 'RestrDate'])

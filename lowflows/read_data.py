@@ -231,10 +231,10 @@ def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None):
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(LogResult, 'Result', where_in1)
 
-    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names).set_index(['SiteID', 'RestrDate']).sort_index()
+    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names).drop_duplicates(['SiteID', 'RestrDate'])
 
     ## Return
-    return db_log
+    return db_log.set_index(['SiteID', 'RestrDate']).sort_index()
 
 
 def rd_lf_last_reading_from_date(from_date, SiteID=None):
