@@ -1,6 +1,6 @@
 {% set name = "lowflows" %}
-{% set version = "0.0.11" %}
-{% set sha256 = "12e5bd5636ad2cf6b5d5cb8084faba76b55633ba8490f6013592a76d11d93a15" %}
+{% set version = "0.0.13" %}
+{% set sha256 = "304ee2a3825268cd2f984f5c3ce9d201b5bcf2c66138219833da57d1f46c8a6f" %}
 
 # sha256 is the prefered checksum -- you can get it for a file with:
 #  `openssl sha256 <file name>`.
@@ -42,6 +42,7 @@ test:
   imports:
     - lowflows
     - lowflows.read_data
+    - lowflows.reporting
 
 about:
   home: https://github.com/Data-to-Knowledge/lowflows
