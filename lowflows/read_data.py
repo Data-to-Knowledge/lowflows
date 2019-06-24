@@ -38,8 +38,8 @@ site_type_names = ['SiteID', 'BandNumber', 'BandName', 'SiteType', 'IsActive']
 # daily restrictions
 restr_table = 'LowFlowSiteRestrictionDaily'
 
-restr_fields = ['SiteID', 'BandNo', 'RestrictionDate', 'AsmtFlow', 'AsmtOP', 'BandAllocation']
-restr_names = ['SiteID', 'BandNumber', 'RestrDate', 'Measurement', 'OPFlag', 'Allocation']
+restr_fields = ['SiteID', 'BandNo', 'RestrictionDate', 'AsmtFlow', 'BandAllocation', 'SnapshotType']
+restr_names = ['SiteID', 'BandNumber', 'RestrDate', 'Measurement', 'Allocation', 'SnapshotType']
 
 # Sites info
 lf_sites_table = 'LowFlowSite'
@@ -65,11 +65,11 @@ ass_table = 'LowFlowSiteAssessment'
 #ass_stmt_alt = "select SiteID, MethodID, Flow as Value, AppliesFromDate, MeasuredDate from LowFlows.dbo.LowFlowSiteAssessment t1 WHERE EXISTS(SELECT 1 FROM LowFlows.dbo.LowFlowSiteAssessment t2 WHERE t2.SiteID = t1.SiteID  and t2.MeasuredDate <= '{date}' GROUP BY t2.SiteID HAVING t1.MeasuredDate = MAX(t2.MeasuredDate))"
 ass_stmt = "select SiteID, AppliesFromDate from LowFlows.dbo.LowFlowSiteAssessment t1 WHERE EXISTS(SELECT 1 FROM LowFlows.dbo.LowFlowSiteAssessment t2 WHERE t2.SiteID = t1.SiteID and t2.AppliesFromDate <= '{date}'{site} GROUP BY t2.SiteID HAVING t1.AppliesFromDate = MAX(t2.AppliesFromDate))"
 
-ass_fields = ['SiteID', 'MethodID', 'AppliesFromDate', 'MeasuredDate', 'Flow', 'Notes']
+ass_fields = ['SiteID', 'MethodID', 'AppliesFromDate', 'MeasuredDate', 'Flow', 'OP', 'Notes']
 
 #ass_names = ['SiteID', 'MeasurementMethod', 'AppliesFromDate', 'MeasurementDate', 'Value', 'SourceReadLog']
 
-ass_names = {'MethodID': 'MeasurementMethod', 'MeasuredDate': 'MeasurementDate', 'Flow': 'Measurement', 'Notes': 'SourceReadLog'}
+ass_names = {'MethodID': 'MeasurementMethod', 'MeasuredDate': 'MeasurementDate', 'Flow': 'Measurement', 'Notes': 'SourceReadLog', 'OP': 'OPFlag'}
 
 
 # Method dict
@@ -189,16 +189,17 @@ def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None):
     """
     LowFlowSiteRestrictionDaily table.
     """
-    where_in1 = util.where_gen(SiteID, 'SiteID')
-    where_in = util.where_gen(BandNumber, 'BandNo', where_in1)
+#    where_in1 = util.where_gen('Live', 'SnapshotType')
+    where_in2 = util.where_gen(SiteID, 'SiteID')
+    where_in = util.where_gen(BandNumber, 'BandNo', where_in2)
 
-    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate')
+    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate').sort_values('SnapshotType')
 
     ## clean
-    restr_ts['OPFlag'] = restr_ts['OPFlag'].str.strip().str.upper()
+    restr_ts.drop_duplicates(['SiteID', 'BandNumber', 'RestrDate'], inplace=True)
 
     ## Return
-    return restr_ts.set_index(['SiteID', 'BandNumber', 'RestrDate']).sort_index()
+    return restr_ts.drop('SnapshotType', axis=1).set_index(['SiteID', 'BandNumber', 'RestrDate']).sort_index()
 
 
 def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None):
@@ -229,10 +230,10 @@ def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None):
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(LogResult, 'Result', where_in1)
 
-    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names).set_index(['SiteID', 'RestrDate']).sort_index()
+    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names).drop_duplicates(['SiteID', 'RestrDate'])
 
     ## Return
-    return db_log
+    return db_log.set_index(['SiteID', 'RestrDate']).sort_index()
 
 
 def rd_lf_last_reading_from_date(from_date, SiteID=None):
@@ -283,6 +284,7 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
     # Clean
     ass1.loc[:, 'SourceReadLog'] = ass1.loc[:, 'SourceReadLog'].str.strip().str[:150]
     ass1['MeasurementDate'] = pd.to_datetime(ass1['MeasurementDate'].dt.date)
+    ass1['OPFlag'] = ass1['OPFlag'].str.strip().str.upper()
 
     ## Add in how it was measured and when
     sites = rd_lf_sites(SiteID)

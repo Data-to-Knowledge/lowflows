@@ -36,3 +36,7 @@ def test_allocation_ts():
     allo1 = lf.allocation_ts(from_date, to_date, ExtSiteID=ExtSiteID)
     assert len(allo1) == 180
 
+def test_site_summary_ts():
+    site_summ1 = lf.site_summary_ts(from_date, to_date, ExtSiteID=ExtSiteID)
+    assert len(site_summ1) == 12
+
