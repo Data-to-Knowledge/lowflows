@@ -1,6 +1,6 @@
 {% set name = "lowflows" %}
-{% set version = "0.0.13" %}
-{% set sha256 = "304ee2a3825268cd2f984f5c3ce9d201b5bcf2c66138219833da57d1f46c8a6f" %}
+{% set version = "0.1.0" %}
+{% set sha256 = "b06ddd2446a9ac9b6a14c8108e35dc794b73957c973fa51cee03ba64d512baca" %}
 
 # sha256 is the prefered checksum -- you can get it for a file with:
 #  `openssl sha256 <file name>`.

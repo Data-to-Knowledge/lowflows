@@ -6,7 +6,7 @@ Created on Mon Jun 24 09:28:58 2019
 """
 import pandas as pd
 from lowflows import core
-
+from lowflows import read_data as rd
 
 #########################################
 ### Reporting functions
@@ -36,8 +36,19 @@ def site_summary_ts(from_date, to_date=None, ExtSiteID=None, SiteType=None, only
     """
     ## Read data
     sites = core.sites(ExtSiteID=ExtSiteID).reset_index()
+    site_link = rd.rd_lf_sites(ExtSiteID=ExtSiteID)
     min_max1 = core.min_max_trigs(ExtSiteID=ExtSiteID, only_active=only_active).reset_index()
     site_log1 = core.site_log_ts(from_date, to_date=to_date, ExtSiteID=ExtSiteID).reset_index()
+    site_types = rd.rd_lf_site_type(SiteType=SiteType, only_active=only_active).reset_index()
+
+    ## Determine site type by site
+    site_types1 = site_types.sort_values('SiteType').drop_duplicates('SiteID')[['SiteID', 'SiteType']]
+    band_count = site_types.groupby('SiteID')['BandNumber'].count()
+    band_count.name = 'BandCount'
+    site_types2 = pd.merge(site_types1, band_count.reset_index(), on='SiteID')
+
+    # Convert SiteIDs
+    site_types3 = pd.merge(site_link, site_types2, on='SiteID').drop('SiteID', axis=1)
 
     ## find min and max triggers
     grp1 = min_max1.groupby('ExtSiteID')
@@ -53,7 +64,8 @@ def site_summary_ts(from_date, to_date=None, ExtSiteID=None, SiteType=None, only
 
     ## Combine other tables
     min_max3 = pd.merge(sites, min_max2, on='ExtSiteID')
-    min_max4 = pd.merge(min_max3, site_log1.drop('SourceReadLog', axis=1), on='ExtSiteID')
+    min_max3a = pd.merge(min_max3, site_types3, on='ExtSiteID')
+    min_max4 = pd.merge(min_max3a, site_log1.drop('SourceReadLog', axis=1), on='ExtSiteID')
 
     ## Assign restriction categories
     min_max4['RestrCategory'] = 'No'
