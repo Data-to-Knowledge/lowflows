@@ -14,7 +14,7 @@ from lowflows import util
 ### Parameters
 
 ## Lowflows
-lf_server = 'sql2012prod03'
+lf_server = 'sql02prod'
 lf_db = 'lowflows'
 
 # Internal site id, band, and min flow
@@ -76,7 +76,7 @@ ass_names = {'MethodID': 'MeasurementMethod', 'MeasuredDate': 'MeasurementDate',
 method_dict = {1: 'Manual Field', 2: 'Manual Visual', 3: 'Telemetered', 4: 'Manual Override', 5: 'Correlated from Telem'}
 
 ## Hydrotel
-hydrotel_server = 'sql2012prod04'
+hydrotel_server = 'sql03prod'
 hydrotel_db = 'hydrotel'
 
 sites_tab = 'Sites'
@@ -89,7 +89,7 @@ obj_fields = ['Site', 'Name']
 
 ## USM
 
-usm_server = 'sql2012prod03'
+usm_server = 'sql02prod'
 usm_db = 'USM'
 
 usm_sites_table = 'Site'
