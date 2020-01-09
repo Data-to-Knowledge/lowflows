@@ -12,7 +12,7 @@ from lowflows import read_data as rd
 ### Reporting functions
 
 
-def site_summary_ts(from_date, to_date=None, ExtSiteID=None, SiteType=None, only_active=True):
+def site_summary_ts(from_date, to_date=None, ExtSiteID=None, SiteType=None, only_active=True, username=None, password=None):
     """
     Function to provide a site summary time series.
 
@@ -35,11 +35,11 @@ def site_summary_ts(from_date, to_date=None, ExtSiteID=None, SiteType=None, only
         ['ExtSiteID', 'RestrDate']
     """
     ## Read data
-    sites = core.sites(ExtSiteID=ExtSiteID).reset_index()
-    site_link = rd.rd_lf_sites(ExtSiteID=ExtSiteID)
-    min_max1 = core.min_max_trigs(ExtSiteID=ExtSiteID, only_active=only_active).reset_index()
-    site_log1 = core.site_log_ts(from_date, to_date=to_date, ExtSiteID=ExtSiteID).reset_index()
-    site_types = rd.rd_lf_site_type(SiteType=SiteType, only_active=only_active).reset_index()
+    sites = core.sites(ExtSiteID=ExtSiteID, username=username, password=password).reset_index()
+    site_link = rd.rd_lf_sites(ExtSiteID=ExtSiteID, username=username, password=password)
+    min_max1 = core.min_max_trigs(ExtSiteID=ExtSiteID, only_active=only_active, username=username, password=password).reset_index()
+    site_log1 = core.site_log_ts(from_date, to_date=to_date, ExtSiteID=ExtSiteID, username=username, password=password).reset_index()
+    site_types = rd.rd_lf_site_type(SiteType=SiteType, only_active=only_active, username=username, password=password).reset_index()
 
     ## Determine site type by site
     site_types1 = site_types.sort_values('SiteType').drop_duplicates('SiteID')[['SiteID', 'SiteType']]

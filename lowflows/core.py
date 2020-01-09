@@ -13,7 +13,7 @@ from lowflows import read_data as rd
 ### Special functions
 
 
-def min_max_trigs(ExtSiteID=None, only_active=None):
+def min_max_trigs(ExtSiteID=None, only_active=None, username=None, password=None):
     """
     Function to determine the min/max triggers.
 
@@ -32,13 +32,13 @@ def min_max_trigs(ExtSiteID=None, only_active=None):
     ########################################
     ### Read in data
 
-    sites1 = rd.rd_lf_sites(ExtSiteID=ExtSiteID)
+    sites1 = rd.rd_lf_sites(ExtSiteID=ExtSiteID, username=username, password=password)
 
-    periods0 = rd.rd_lf_periods()
+    periods0 = rd.rd_lf_periods(username=username, password=password)
 
-    all_trig = rd.rd_lf_min_flows()
+    all_trig = rd.rd_lf_min_flows(username=username, password=password)
 
-    site_type = rd.rd_lf_site_type(only_active=only_active)
+    site_type = rd.rd_lf_site_type(only_active=only_active, username=username, password=password)
 
     #######################################
     ### Process data
@@ -91,7 +91,7 @@ def min_max_trigs(ExtSiteID=None, only_active=None):
 ### Main functions
 
 
-def sites(SiteID=None, ExtSiteID=None):
+def sites(SiteID=None, ExtSiteID=None, username=None, password=None):
     """
     Function to get the site info for the lowflows sites that correspond in USM.
 
@@ -107,13 +107,13 @@ def sites(SiteID=None, ExtSiteID=None):
     DataFrame
         'ExtSiteID'
     """
-    lf_sites = rd.rd_lf_sites(SiteID, ExtSiteID)
-    usm_sites1 = rd.usm_sites(lf_sites.ExtSiteID.tolist())
+    lf_sites = rd.rd_lf_sites(SiteID, ExtSiteID, username=username, password=password)
+    usm_sites1 = rd.usm_sites(lf_sites.ExtSiteID.tolist(), username=username, password=password)
 
     return usm_sites1.set_index('ExtSiteID')
 
 
-def crc_trigs(SiteID=None, ExtSiteID=None, BandNumber=None, RecordNumber=None, SiteType=None, only_active=None):
+def crc_trigs(SiteID=None, ExtSiteID=None, BandNumber=None, RecordNumber=None, SiteType=None, only_active=None, username=None, password=None):
     """
     Function to Determine the min and max trigger and allocations by the RecordNumber, BandNumber, and ExtSiteID.
 
@@ -137,10 +137,10 @@ def crc_trigs(SiteID=None, ExtSiteID=None, BandNumber=None, RecordNumber=None, S
     DataFrame
     """
     ### Read in tables
-    crc = rd.rd_lf_crc(SiteID=SiteID, BandNumber=BandNumber, RecordNumber=RecordNumber)
-    min_max = min_max_trigs(ExtSiteID=ExtSiteID, only_active=only_active).reset_index()
-    sites = rd.rd_lf_sites(SiteID=SiteID, ExtSiteID=ExtSiteID)
-    site_types = rd.rd_lf_site_type(SiteID=SiteID, BandNumber=BandNumber, SiteType=SiteType, only_active=only_active).reset_index()
+    crc = rd.rd_lf_crc(SiteID=SiteID, BandNumber=BandNumber, RecordNumber=RecordNumber, username=username, password=password)
+    min_max = min_max_trigs(ExtSiteID=ExtSiteID, only_active=only_active, username=username, password=password).reset_index()
+    sites = rd.rd_lf_sites(SiteID=SiteID, ExtSiteID=ExtSiteID, username=username, password=password)
+    site_types = rd.rd_lf_site_type(SiteID=SiteID, BandNumber=BandNumber, SiteType=SiteType, only_active=only_active, username=username, password=password).reset_index()
 
     ### process min-max
     min_max2 = min_max.groupby(['ExtSiteID', 'BandNumber'])
@@ -169,7 +169,7 @@ def crc_trigs(SiteID=None, ExtSiteID=None, BandNumber=None, RecordNumber=None, S
     return min_max5.set_index(['RecordNumber', 'BandNumber', 'ExtSiteID'])
 
 
-def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None):
+def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None, username=None, password=None):
     """
     Function to return a time series log of site measurements read by Lowflows to the source systems.
 
@@ -190,9 +190,9 @@ def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None):
         ['ExtSiteID', 'RestrDate']
     """
     ### Read in tables
-    site_log1 = rd.rd_lf_db_log(SiteID=SiteID, from_date=from_date, to_date=to_date)
-    sites = rd.rd_lf_sites(SiteID=SiteID, ExtSiteID=ExtSiteID)
-    method1 = rd.rd_lf_last_readings_ts(from_date, to_date, SiteID)
+    site_log1 = rd.rd_lf_db_log(SiteID=SiteID, from_date=from_date, to_date=to_date, username=username, password=password)
+    sites = rd.rd_lf_sites(SiteID=SiteID, ExtSiteID=ExtSiteID, username=username, password=password)
+    method1 = rd.rd_lf_last_readings_ts(from_date, to_date, SiteID, username=username, password=password)
 
     ### Combine tables
     method2 = pd.concat([method1, site_log1.drop('LogResult', axis=1)], axis=1, join='inner').reset_index()
@@ -202,7 +202,7 @@ def site_log_ts(from_date, to_date=None, SiteID=None, ExtSiteID=None):
     return site_ts.set_index(['ExtSiteID', 'RestrDate'])
 
 
-def allocation_ts(from_date, to_date=None, ExtSiteID=None, BandNumber=None, RecordNumber=None):
+def allocation_ts(from_date, to_date=None, ExtSiteID=None, BandNumber=None, RecordNumber=None, username=None, password=None):
     """
     Function to return a time series of allocation restrictions by 'RecordNumber', 'BandNumber', 'ExtSiteID', and 'RestrDate'.
 
@@ -227,14 +227,14 @@ def allocation_ts(from_date, to_date=None, ExtSiteID=None, BandNumber=None, Reco
         ['RecordNumber', 'BandNumber', 'ExtSiteID', 'RestrDate']
     """
     ## Read tables
-    sites1 = rd.rd_lf_sites(ExtSiteID=ExtSiteID)
-    crc1 = rd.rd_lf_crc(BandNumber=BandNumber, RecordNumber=RecordNumber)
+    sites1 = rd.rd_lf_sites(ExtSiteID=ExtSiteID, username=username, password=password)
+    crc1 = rd.rd_lf_crc(BandNumber=BandNumber, RecordNumber=RecordNumber, username=username, password=password)
 
     if ExtSiteID is not None:
         SiteID = sites1.SiteID.unique().tolist()
     else:
         SiteID = None
-    restr_ts = rd.rd_lf_restr_ts(SiteID, BandNumber=BandNumber, from_date=from_date, to_date=to_date).drop('Measurement', axis=1).reset_index()
+    restr_ts = rd.rd_lf_restr_ts(SiteID, BandNumber=BandNumber, from_date=from_date, to_date=to_date, username=username, password=password).drop('Measurement', axis=1).reset_index()
 
     ## Combine tables
     restr_crc1 = pd.merge(crc1, restr_ts, on=['SiteID', 'BandNumber']).drop_duplicates(['SiteID', 'BandNumber', 'RecordNumber', 'RestrDate'], keep='last')
