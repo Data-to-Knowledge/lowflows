@@ -14,7 +14,7 @@ from lowflows import util
 ### Parameters
 
 ## Lowflows
-lf_server = 'sql2012prod03'
+lf_server = 'sql02prod'
 lf_db = 'lowflows'
 
 # Internal site id, band, and min flow
@@ -76,7 +76,7 @@ ass_names = {'MethodID': 'MeasurementMethod', 'MeasuredDate': 'MeasurementDate',
 method_dict = {1: 'Manual Field', 2: 'Manual Visual', 3: 'Telemetered', 4: 'Manual Override', 5: 'Correlated from Telem'}
 
 ## Hydrotel
-hydrotel_server = 'sql2012prod04'
+hydrotel_server = 'sql03prod'
 hydrotel_db = 'hydrotel'
 
 sites_tab = 'Sites'
@@ -89,7 +89,7 @@ obj_fields = ['Site', 'Name']
 
 ## USM
 
-usm_server = 'sql2012prod03'
+usm_server = 'sql02prod'
 usm_db = 'USM'
 
 usm_sites_table = 'Site'
@@ -102,25 +102,25 @@ usm_names = ['ExtSiteID', 'SiteName', 'NZTMX', 'NZTMY']
 ### Specific table reading functions
 
 
-def usm_sites(ExtSiteID=None):
+def usm_sites(ExtSiteID=None, username=None, password=None):
     """
     USM Site table.
     """
     where_in = util.where_gen(ExtSiteID, 'UpstreamSiteID')
 
-    usm_sites1 = rd_sql(usm_server, usm_db, usm_sites_table, usm_fields, where_in=where_in, rename_cols=usm_names).round()
+    usm_sites1 = rd_sql(usm_server, usm_db, usm_sites_table, usm_fields, where_in=where_in, rename_cols=usm_names, username=username, password=password).round()
 
     return usm_sites1
 
 
-def rd_lf_sites(SiteID=None, ExtSiteID=None):
+def rd_lf_sites(SiteID=None, ExtSiteID=None, username=None, password=None):
     """
     LowFlowSite table.
     """
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(ExtSiteID, 'RefDBaseKey', where_in1)
 
-    sites = rd_sql(lf_server, lf_db, lf_sites_table, lf_sites_fields, where_in=where_in, rename_cols=lf_sites_names)
+    sites = rd_sql(lf_server, lf_db, lf_sites_table, lf_sites_fields, where_in=where_in, rename_cols=lf_sites_names, username=username, password=password)
 
     ## Clean
     sites['ExtSiteID'] = sites['ExtSiteID'].str.upper()
@@ -129,14 +129,14 @@ def rd_lf_sites(SiteID=None, ExtSiteID=None):
     return sites
 
 
-def rd_lf_min_flows(SiteID=None, BandNumber=None):
+def rd_lf_min_flows(SiteID=None, BandNumber=None, username=None, password=None):
     """
     LowFlowSiteBandPeriodAllocation table.
     """
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(BandNumber, 'BandNo', where_in1)
 
-    restr_val = rd_sql(lf_server, lf_db, min_flow_table, min_flow_fields, where_in=where_in, rename_cols=min_flow_names)
+    restr_val = rd_sql(lf_server, lf_db, min_flow_table, min_flow_fields, where_in=where_in, rename_cols=min_flow_names, username=username, password=password)
 
     ## clean - Fix duplicate zero allocations at zero flow
     grp1 = restr_val.groupby(['SiteID', 'BandNumber', 'Period'])
@@ -153,20 +153,20 @@ def rd_lf_min_flows(SiteID=None, BandNumber=None):
     return all_trig
 
 
-def rd_lf_periods(SiteID=None, BandNumber=None):
+def rd_lf_periods(SiteID=None, BandNumber=None, username=None, password=None):
     """
     LowFlowSiteBandPeriod table.
     """
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(BandNumber, 'BandNo', where_in1)
 
-    periods = rd_sql(lf_server, lf_db, period_table, period_fields, where_in=where_in, rename_cols=period_names)
+    periods = rd_sql(lf_server, lf_db, period_table, period_fields, where_in=where_in, rename_cols=period_names, username=username, password=password)
 
     ## Return
     return periods
 
 
-def rd_lf_site_type(SiteID=None, BandNumber=None, SiteType=None, only_active=None):
+def rd_lf_site_type(SiteID=None, BandNumber=None, SiteType=None, only_active=None, username=None, password=None):
     """
     LowFlowSiteBand table.
     """
@@ -175,7 +175,7 @@ def rd_lf_site_type(SiteID=None, BandNumber=None, SiteType=None, only_active=Non
     where_in3 = util.where_gen(only_active, 'isActive', where_in2)
     where_in = util.where_gen(SiteType, 'RestrictionType', where_in3)
 
-    site_type = rd_sql(lf_server, lf_db, site_type_table, site_type_fields, where_in=where_in, rename_cols=site_type_names)
+    site_type = rd_sql(lf_server, lf_db, site_type_table, site_type_fields, where_in=where_in, rename_cols=site_type_names, username=username, password=password)
 
     ## clean
     site_type['BandName'] = site_type['BandName'].str.strip()
@@ -185,7 +185,7 @@ def rd_lf_site_type(SiteID=None, BandNumber=None, SiteType=None, only_active=Non
     return site_type.set_index(['SiteID', 'BandNumber']).sort_index()
 
 
-def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None):
+def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None, username=None, password=None):
     """
     LowFlowSiteRestrictionDaily table.
     """
@@ -193,7 +193,7 @@ def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None):
     where_in2 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(BandNumber, 'BandNo', where_in2)
 
-    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate').sort_values('SnapshotType')
+    restr_ts = rd_sql(lf_server, lf_db, restr_table, restr_fields, where_in=where_in, rename_cols=restr_names, from_date=from_date, to_date=to_date, date_col='RestrictionDate', username=username, password=password).sort_values('SnapshotType')
 
     ## clean
     restr_ts.drop_duplicates(['SiteID', 'BandNumber', 'RestrDate'], inplace=True)
@@ -202,7 +202,7 @@ def rd_lf_restr_ts(SiteID=None, BandNumber=None, from_date=None, to_date=None):
     return restr_ts.drop('SnapshotType', axis=1).set_index(['SiteID', 'BandNumber', 'RestrDate']).sort_index()
 
 
-def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None):
+def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None, username=None, password=None):
     """
     tagLowFlow table.
     """
@@ -210,7 +210,7 @@ def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None):
     where_in2 = util.where_gen(BandNumber, 'BandNo', where_in1)
     where_in = util.where_gen(RecordNumber, 'RecordNo', where_in2)
 
-    crc = rd_sql(lf_server, lf_db, crc_table, crc_fields, where_in=where_in, rename_cols=crc_names)
+    crc = rd_sql(lf_server, lf_db, crc_table, crc_fields, where_in=where_in, rename_cols=crc_names, username=username, password=password)
 
     ## clean
     crc['RecordNumber'] = crc['RecordNumber'].str.strip().str.upper()
@@ -220,7 +220,7 @@ def rd_lf_crc(SiteID=None, BandNumber=None, RecordNumber=None):
     return crc1
 
 
-def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None):
+def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None, username=None, password=None):
     """
     LowFlowSiteRefDBaseReadSite table.
     """
@@ -230,13 +230,13 @@ def rd_lf_db_log(SiteID=None, from_date=None, to_date=None, LogResult=None):
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(LogResult, 'Result', where_in1)
 
-    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names).drop_duplicates(['SiteID', 'RestrDate'])
+    db_log = rd_sql(lf_server, lf_db, db_log_table, db_log_fields, where_in=where_in, from_date=from_date, to_date=to_date, date_col='forDate', rename_cols=db_log_names, username=username, password=password).drop_duplicates(['SiteID', 'RestrDate'])
 
     ## Return
     return db_log.set_index(['SiteID', 'RestrDate']).sort_index()
 
 
-def rd_lf_last_reading_from_date(from_date, SiteID=None):
+def rd_lf_last_reading_from_date(from_date, SiteID=None, username=None, password=None):
     """
     """
     if SiteID is None:
@@ -247,12 +247,12 @@ def rd_lf_last_reading_from_date(from_date, SiteID=None):
         site_str = ' and SiteID in ({})'.format(', '.join([str(i) for i in SiteID]))
 
     stmt1 = ass_stmt.format(date=from_date, site=site_str)
-    df1 = rd_sql(lf_server, lf_db, stmt=stmt1)
+    df1 = rd_sql(lf_server, lf_db, stmt=stmt1, username=username, password=password)
 
     return df1
 
 
-def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
+def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None, username=None, password=None):
     """
     LowFlowSiteAssessment table
     """
@@ -263,7 +263,7 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
 
     list1 = []
     for d in dates1:
-        df1 = rd_lf_last_reading_from_date(d, SiteID)
+        df1 = rd_lf_last_reading_from_date(d, SiteID, username=username, password=password)
         df1['RestrDate'] = d
         list1.append(df1)
     df2 = pd.concat(list1)
@@ -274,7 +274,7 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
     where_in1 = util.where_gen(SiteID, 'SiteID')
     where_in = util.where_gen(dates2, 'AppliesFromDate', where_in1)
 
-    df3 = rd_sql(lf_server, lf_db, ass_table, ass_fields, where_in=where_in)
+    df3 = rd_sql(lf_server, lf_db, ass_table, ass_fields, where_in=where_in, username=username, password=password)
 
     df4 = pd.merge(df2, df3, on=['SiteID', 'AppliesFromDate'], how='left')
 
@@ -287,12 +287,12 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
     ass1['OPFlag'] = ass1['OPFlag'].str.strip().str.upper()
 
     ## Add in how it was measured and when
-    sites = rd_lf_sites(SiteID)
+    sites = rd_lf_sites(SiteID, username=username, password=password)
 
     tel_sites1 = ass1[ass1.MeasurementMethod == 3].SiteID
     if not tel_sites1.empty:
         tel_sites2 = sites.loc[sites.SiteID.isin(tel_sites1), 'ExtSiteID']
-        corr_sites1 = telem_corr_sites(tel_sites2.tolist())
+        corr_sites1 = telem_corr_sites(tel_sites2.tolist(), username=username, password=password)
         corr_sites2 = sites.loc[sites.ExtSiteID.isin(corr_sites1), 'SiteID']
         ass1.loc[ass1.SiteID.isin(corr_sites2), 'MeasurementMethod'] = 5
 
@@ -301,7 +301,7 @@ def rd_lf_last_readings_ts(from_date, to_date=None, SiteID=None):
     return site_type2
 
 
-def telem_corr_sites(site_num=None):
+def telem_corr_sites(site_num=None, username=None, password=None):
     """
     Function to determine if sites are telemetered or are correlated from telemetered sites in Hydrotel. Output is a list of correlated sites.
 
@@ -326,10 +326,10 @@ def telem_corr_sites(site_num=None):
 
     ### Read in data
     if isinstance(site_num, list):
-        sites = rd_sql(hydrotel_server, hydrotel_db, sites_tab, sites_fields, {'ExtSysID': site_num})
+        sites = rd_sql(hydrotel_server, hydrotel_db, sites_tab, sites_fields, {'ExtSysID': site_num}, username=username, password=password)
         sites['ExtSysID'] = pd.to_numeric(sites['ExtSysID'], 'coerce')
     else:
-        sites = rd_sql(hydrotel_server, hydrotel_db, sites_tab, sites_fields)
+        sites = rd_sql(hydrotel_server, hydrotel_db, sites_tab, sites_fields, username=username, password=password)
         sites['ExtSysID'] = pd.to_numeric(sites['ExtSysID'], 'coerce')
         sites = sites[sites.ExtSysID.notnull()]
 
@@ -337,7 +337,7 @@ def telem_corr_sites(site_num=None):
 
     where_dict.update({'Site': sites.Site.tolist()})
 
-    obj = rd_sql(hydrotel_server, hydrotel_db, obj_tab, obj_fields, where_dict)
+    obj = rd_sql(hydrotel_server, hydrotel_db, obj_tab, obj_fields, where_dict, username=username, password=password)
     corr_sites = sites[sites.Site.isin(obj.Site)]
 
     return corr_sites.ExtSysID.astype('int32').astype(str).tolist()
